@@ -36,14 +36,41 @@ team_members = db.Table('team_members',
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
+    is_active = db.Column(db.Boolean(), nullable=False, default=True)
     username = db.Column(db.String(128), unique=True, nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
+    
     strategies = db.relationship('Strategy', backref='user', lazy=True)
     teams = db.relationship('Team', secondary=team_members, backref=db.backref('users', lazy='dynamic'))
     comments = db.relationship('Comment', backref='user', lazy=True)
+    
+    def serialize(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'strategies': [strategy.serialize() for strategy in self.strategies],
+            'teams': [team.serialize() for team in self.teams],
+            'comments': [comment.serialize() for comment in self.comments]
+        }
 
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
+    
     @property
     def password(self):
         raise AttributeError('password: write-only field')

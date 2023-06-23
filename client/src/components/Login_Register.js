@@ -1,41 +1,44 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 
-const Login_Register = ({ setIsLoggedIn }) => { // Receive setIsLoggedIn function as a prop
+const Login_Register = ({ setIsLoggedIn }) => {
     const history = useHistory();
-    const [values, setValues] = useState({
-        email: "",
-        password: ""
-    });
+    const [loginValues, setLoginValues] = useState({ email: "", password: "" });
+    const [registerValues, setRegisterValues] = useState({ email: "", password: "" });
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e) => {
+    const handleLoginChange = (e) => {
         const { name, value } = e.target;
-        setValues({ ...values, [name]: value });
+        setLoginValues({ ...loginValues, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleRegisterChange = (e) => {
+        const { name, value } = e.target;
+        setRegisterValues({ ...registerValues, [name]: value });
+    };
+
+    const handleLoginSubmit = (e) => {
         e.preventDefault();
-        setErrors(validateForm(values));
+        setErrors(validateForm(loginValues));
         setIsSubmitting(true);
 
         if (Object.keys(errors).length === 0) {
-        loginUser();
+            loginUser();
         } else {
-        console.log("Form validation errors:", errors);
+            console.log("Form validation errors:", errors);
         }
     };
 
-    const handleRegister = (e) => {
+    const handleRegisterSubmit = (e) => {
         e.preventDefault();
-        setErrors(validateForm(values));
+        setErrors(validateForm(registerValues));
         setIsSubmitting(true);
 
         if (Object.keys(errors).length === 0) {
-        registerUser();
+            registerUser();
         } else {
-        console.log("Form registration errors:", errors);
+            console.log("Form registration errors:", errors);
         }
     };
 
@@ -53,13 +56,13 @@ const Login_Register = ({ setIsLoggedIn }) => { // Receive setIsLoggedIn functio
     };
 
     const loginUser = () => {
-        console.log("Submitting login request with values:", values);
+        console.log("Submitting login request with values:", loginValues);
         fetch("/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(loginValues),
         })
         .then((response) => {
             console.log("Received response:", response);
@@ -82,13 +85,13 @@ const Login_Register = ({ setIsLoggedIn }) => { // Receive setIsLoggedIn functio
     }
 
     const registerUser = () => {
-        console.log("Submitting registration request with values:", values);
+        console.log("Submitting registration request with values:", registerValues);
         fetch("/register", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(registerValues),
         })
         .then((response) => {
             console.log("Received response:", response);
@@ -113,43 +116,43 @@ const Login_Register = ({ setIsLoggedIn }) => { // Receive setIsLoggedIn functio
     return (
         <div>
             {/* Login form here */}
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleLoginSubmit}>
                 <label>
                 Email:
                 <input 
                     type="email" 
                     name="email" 
-                    value={values.email} 
-                    onChange={handleChange} />
+                    value={loginValues.email} 
+                    onChange={handleLoginChange} />
                 </label>
                 <label>
                 Password:
                 <input 
                     type="password" 
                     name="password" 
-                    value={values.password} 
-                    onChange={handleChange} />
+                    value={loginValues.password} 
+                    onChange={handleLoginChange} />
                 </label>
                 <button type="submit" disabled={isSubmitting}>Login</button>
             </form>
         
             {/* Registration form here */}
-            <form onSubmit={handleRegister}>
+            <form onSubmit={handleRegisterSubmit}>
                 <label>
                 Email:
                 <input 
                     type="email" 
                     name="email" 
-                    value={values.email} 
-                    onChange={handleChange} />
+                    value={registerValues.email} 
+                    onChange={handleRegisterChange} />
                 </label>
                 <label>
                 Password:
                 <input 
                     type="password" 
                     name="password" 
-                    value={values.password} 
-                    onChange={handleChange} />
+                    value={registerValues.password} 
+                    onChange={handleRegisterChange} />
                 </label>
                 <button type="submit" disabled={isSubmitting}>Register</button>
             </form>
