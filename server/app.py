@@ -39,7 +39,7 @@ app.secret_key = environ.get('SECRET_KEY')
 api=Api(app)
 
 # Classes with RESTful methods
-class RegisterResource(Resource):
+class SignupResource(Resource):
     def post(self):
         data = request.get_json()
         user = User.query.filter_by(email=data['email']).first()
@@ -59,12 +59,12 @@ class RegisterResource(Resource):
 class LoginResource(Resource):
     def post(self):
         data = request.get_json()
-        user = User.query.filter_by(email=data['email']).first()
-    
+        user = User.query.filter_by(username=data['username']).first()
+
         if user and user.check_password(data['password']):
             login_user(user)
             return {"message": "Logged in successfully"}, 200
-        return {"message": "Invalid email or password"}, 401
+        return {"message": "Invalid username or password"}, 401
 
 class LogoutResource(Resource):
     @login_required
@@ -190,7 +190,7 @@ class CommentResource(Resource):
 # Registering resources with the API
 api.add_resource(LoginResource, '/login')
 api.add_resource(LogoutResource, '/logout')
-api.add_resource(RegisterResource, '/register')
+api.add_resource(SignupResource, '/signup')
 api.add_resource(UserResource, '/user/<int:id>')
 api.add_resource(StrategyResource, '/strategy/<int:id>')
 api.add_resource(TeamResource, '/team/<int:id>')

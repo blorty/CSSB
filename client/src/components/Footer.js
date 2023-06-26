@@ -1,11 +1,19 @@
-// Footer.js
 import React from 'react';
+import { Grid, Segment } from 'semantic-ui-react';
 
 function Footer() {
     return (
-        <footer>
-        <p>&copy; 2023 Your Company Name</p>
-        </footer>
+        <div className="footer">
+        <Grid>
+            <Grid.Row>
+            <Grid.Column>
+                <Segment inverted vertical>
+                <p>&copy; Counter Strike Strategy Builder</p>
+                </Segment>
+            </Grid.Column>
+            </Grid.Row>
+        </Grid>
+        </div>
     );
 }
 

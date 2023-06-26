@@ -1,6 +1,4 @@
-// App.js
-
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
@@ -11,29 +9,24 @@ import TeamPage from './components/Team_Page';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
+import { AppProvider } from './AppContext'; // import AppProvider
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   return (
+    <AppProvider>
       <Router>
         <NavBar />
         <Switch>
-          <Route path="/" exact>
-            <Dashboard />
-          </Route>
-          <Route path="/login">
-            <Login setIsLoggedIn={setIsLoggedIn} />
-          </Route>
-          <Route path="/signup">
-            <Signup setIsLoggedIn={setIsLoggedIn} />
-          </Route>
-          <PrivateRoute path="/user/:id" component={UserProfile} isLoggedIn={isLoggedIn} />
-          <PrivateRoute path="/strategy" component={StrategyPage} isLoggedIn={isLoggedIn} />
-          <PrivateRoute path="/team/:id" component={TeamPage} isLoggedIn={isLoggedIn} />
+          <Route path="/" exact component={Dashboard} />
+          <Route path="/login" component={Login} />
+          <Route path="/signup" component={Signup} />
+          <PrivateRoute path="/user/:id" component={UserProfile} />
+          <PrivateRoute path="/strategies" component={StrategyPage} />
+          <PrivateRoute path="/team/:id" component={TeamPage} />
         </Switch>
         <Footer />
       </Router>
+    </AppProvider>
   );
 }
 

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useHistory } from 'react-router-dom';
+import { Button, Form, Label } from 'semantic-ui-react';
+import { AppContext } from '../AppContext';
 
-const Login = ({ setIsLoggedIn }) => {
-    const history = useHistory();
+const Login = () => {
+    const { login } = useContext(AppContext);
 
     const validationSchema = Yup.object({
         username: Yup.string().required('Username is required'),
@@ -13,60 +14,75 @@ const Login = ({ setIsLoggedIn }) => {
 
     const formik = useFormik({
         initialValues: {
-            username: "",
-            password: ""
+        username: '',
+        password: ''
         },
         validationSchema,
-        onSubmit: (values, { setSubmitting }) => {
-            fetch("/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(values),
-            })
-            .then((response) => {
-                if (response.ok) {
-                    console.log("Login successful");
-                    setIsLoggedIn(true);
-                    history.push("/dashboard");
-                } else {
-                    console.log("Login failed");
-                }
-            })
-            .catch((error) => {
-                console.log("Error logging in:", error);
-            })
-            .finally(() => {
+        onSubmit: async (values, { setSubmitting, setErrors }) => {
+            try {
+                await login(values);
                 setSubmitting(false);
-            });
-        },
+                } catch (err) {
+                setErrors({submit: err.message});
+                setSubmitting(false);
+                }
+            },
     });
 
     return (
-        <form onSubmit={formik.handleSubmit}>
-            <div>
-                <label>Username</label>
-                <input 
-                    type="text" 
-                    name="username" 
-                    value={formik.values.username} 
-                    onChange={formik.handleChange} />
-                {formik.errors.username && formik.touched.username && <p>{formik.errors.username}</p>}
-            </div>
+        <div className="ui container">
+        <div className="ui middle aligned center aligned grid">
+            <div className="column">
+            <h1 className="ui header">Login</h1>
+            <Form onSubmit={formik.handleSubmit} loading={formik.isSubmitting}>
+                <div className="ui segment">
+                <Form.Field error={formik.touched.username && !!formik.errors.username}>
+                    <label htmlFor="username">Username</label>
+                    <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={formik.values.username}
+                    onChange={formik.handleChange}
+                    />
+                    {formik.errors.username && formik.touched.username && (
+                    <Label basic color='red' pointing>
+                        {formik.errors.username}
+                    </Label>
+                    )}
+                </Form.Field>
 
-            <div>
-                <label>Password</label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    value={formik.values.password} 
-                    onChange={formik.handleChange} />
-                {formik.errors.password && formik.touched.password && <p>{formik.errors.password}</p>}
-            </div>
+                <Form.Field error={formik.touched.password && !!formik.errors.password}>
+                    <label htmlFor="password">Password</label>
+                    <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formik.values.password}
+                    onChange={formik.handleChange}
+                    />
+                    {formik.errors.password && formik.touched.password && (
+                    <Label basic color='red' pointing>
+                        {formik.errors.password}
+                    </Label>
+                    )}
+                </Form.Field>
 
-            <button type="submit" disabled={!formik.isValid || formik.isSubmitting}>Login</button>
-        </form>
+                <Button
+                    type="submit"
+                    primary
+                    disabled={!formik.isValid || formik.isSubmitting}
+                >
+                    Login
+                </Button>
+                </div>
+                <Label basic color='red' pointing>
+                    {formik.errors.submit && <p>{formik.errors.submit}</p>}
+                </Label>
+            </Form>
+            </div>
+        </div>
+        </div>
     );
 };
 
