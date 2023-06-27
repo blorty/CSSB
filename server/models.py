@@ -57,10 +57,6 @@ class User(db.Model, SerializerMixin):
         }
 
     @property
-    def is_authenticated(self):
-        return True
-
-    @property
     def is_active(self):
         return True
 
@@ -107,7 +103,6 @@ class User(db.Model, SerializerMixin):
 
     # password validation
     @validates('password_hash')
-    @validates('password_hash')
     def validate_password(self, key, password_hash):
         password = self.password_plaintext
         if not password:
@@ -133,6 +128,14 @@ class Map(db.Model, SerializerMixin):
     # One to Many relationship
     strategies = db.relationship('Strategy', backref='map', lazy=True)
 
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'strategies': [strategy.serialize() for strategy in self.strategies],
+        }
+
+
 class Strategy(db.Model, SerializerMixin):
     __tablename__ = 'strategies'
     id = db.Column(db.Integer, primary_key=True)
@@ -147,6 +150,17 @@ class Strategy(db.Model, SerializerMixin):
     # Many to Many relationship
     teams = db.relationship('Team', secondary=strategy_team_association_table, back_populates="strategies", lazy='dynamic')
 
+    def serialize(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'content': self.content,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # assuming it is a datetime object
+            'user_id': self.user_id,
+            'map_id': self.map_id,
+            'comments': [comment.serialize() for comment in self.comments],
+            'teams': [team.serialize() for team in self.teams],
+        }
 
 class Comment(db.Model, SerializerMixin):
     __tablename__ = 'comments'
@@ -156,5 +170,14 @@ class Comment(db.Model, SerializerMixin):
     # Foreign Keys
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     strategy_id = db.Column(db.Integer, db.ForeignKey('strategies.id'))
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'content': self.content,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # assuming it is a datetime object
+            'user_id': self.user_id,
+            'strategy_id': self.strategy_id,
+        }
 
 

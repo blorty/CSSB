@@ -1,9 +1,21 @@
 import React from 'react';
 import { Card, Feed, Icon, Button } from 'semantic-ui-react';
+import { AppContext } from '../AppContext';
+import { useContext } from 'react';
 
 // User Profile Component
 function UserProfile() {
     // Replace with actual user data
+    const { isLoggedIn } = useContext(AppContext);
+
+    if (!isLoggedIn) {
+        return (
+            <div>
+                <h1>Please login to view this page</h1>
+            </div>
+        );
+    }
+    
     const user = { name: 'John Doe', email: 'john.doe@example.com' };
 
     return (

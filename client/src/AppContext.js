@@ -5,11 +5,11 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [authError, setAuthError] = useState('');
     const history = useHistory();
 
-// Function to log in a user
-const login = async (values) => {
-    try {
+    const login = async (values) => {
+        try {
         const response = await fetch('/login', {
             method: 'POST',
             headers: {
@@ -17,24 +17,20 @@ const login = async (values) => {
             },
             body: JSON.stringify(values),
         });
-    
+
         if (response.ok) {
-            console.log('Login successful');
+            localStorage.setItem('isLoggedIn', true);
             setIsLoggedIn(true);
             history.push('/dashboard');
         } else {
-            // If the server returns an error (response not ok), parse the error message from the response
             const errorData = await response.json();
             throw new Error(errorData.message);
         }
         } catch (error) {
-        console.log('Error logging in:', error);
-        // Throw the error to be caught in the form submission in Login component
         throw error;
         }
-    };  
+    };
 
-    // Function to register a user
     const register = async (values) => {
         try {
         const response = await fetch('/signup', {
@@ -46,39 +42,42 @@ const login = async (values) => {
         });
 
         if (response.ok) {
-            console.log('Registration successful');
             history.push('/dashboard');
         } else {
-            console.log('Registration failed');
+            const errorData = await response.json();
+            throw new Error(errorData.message);
         }
         } catch (error) {
-        console.log('Error registering:', error);
+        setAuthError(error.message);
         }
     };
 
-    // Function to log out a user
-    const logout = () => {
-        // Clear user session here
-        localStorage.removeItem('user');
-        setIsLoggedIn(false);
-        history.push('/login');
-    }
-
-    // Check if the user is logged in when the component mounts
-    useEffect(() => {
-        const checkLoggedIn = () => {
+    const logout = async () => {
         try {
-            const session = localStorage.getItem('user');
-            setIsLoggedIn(!!session);
-        } catch (error) {
-            console.error('Failed to check login status: ', error);
+        const response = await fetch('/logout', {
+            method: 'GET',
+        });
+
+        if (response.ok) {
+            localStorage.removeItem('isLoggedIn');
+            setIsLoggedIn(false);
+            history.push('/');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message);
         }
-        };
-        checkLoggedIn();
+        } catch (error) {
+        console.error('Failed to log out: ', error);
+        }
+    };
+
+    useEffect(() => {
+        const loggedInStatus = localStorage.getItem('isLoggedIn');
+        setIsLoggedIn(loggedInStatus === 'true');
     }, []);
 
     return (
-        <AppContext.Provider value={{ isLoggedIn, setIsLoggedIn, login, register, logout }}>
+        <AppContext.Provider value={{ isLoggedIn, setIsLoggedIn, login, register, logout, authError }}>
         {children}
         </AppContext.Provider>
     );

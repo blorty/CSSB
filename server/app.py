@@ -11,11 +11,13 @@ from functools import wraps
 from flask import request, session, abort
 from flask_restful import Resource, Api
 from flask_migrate import Migrate
-from flask_login import login_user, LoginManager, login_required, logout_user, current_user
+from flask_login import login_user, UserMixin, LoginManager, login_required, logout_user, current_user
+from sqlalchemy import join
+
 
 # Local imports
 from config import app, db, api
-from models import User, Strategy, Team, Comment, Map
+from models import Strategy, Team, Comment, Map, User
 
 # Define a custom decorator
 def login_required(func):
@@ -37,6 +39,14 @@ app.secret_key = environ.get('SECRET_KEY')
 
 # Setting up the API
 api=Api(app)
+
+# Setup Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Classes with RESTful methods
 class SignupResource(Resource):
@@ -72,7 +82,7 @@ class LogoutResource(Resource):
         logout_user()
         return {"message": "Logged out successfully"}, 200
 
-class UserResource(Resource):
+class UserResource(UserMixin, Resource):
     @login_required
     def get(self, id):
         user = User.query.get(id)
@@ -99,6 +109,11 @@ class UserResource(Resource):
         db.session.delete(user)
         db.session.commit()
         return {"message": "User deleted successfully"}, 200
+    
+class AllStrategiesResource(Resource):
+    def get(self):
+        strategies = db.session.query(Strategy, Map).join(Map, Strategy.map_id==Map.id).all()
+        return {'strategies': [{'strategy': strategy.serialize(), 'map': map.serialize()} for strategy, map in strategies]}
 
 class StrategyResource(Resource):
     @login_required
@@ -191,6 +206,7 @@ class CommentResource(Resource):
 api.add_resource(LoginResource, '/login')
 api.add_resource(LogoutResource, '/logout')
 api.add_resource(SignupResource, '/signup')
+api.add_resource(AllStrategiesResource, '/strategies')
 api.add_resource(UserResource, '/user/<int:id>')
 api.add_resource(StrategyResource, '/strategy/<int:id>')
 api.add_resource(TeamResource, '/team/<int:id>')

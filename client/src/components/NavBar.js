@@ -12,28 +12,28 @@ function NavBar() {
 
     const LoggedInMenu = (
         <Menu pointing secondary>
-            <Menu.Item as={Link} to="/">Home</Menu.Item>
-            <Menu.Item as={Link} to="/dashboard">Dashboard</Menu.Item>
-            <Menu.Item as={Link} to="/teams">Teams</Menu.Item>
-            <Menu.Item as={Link} to="/strategies">Strategies</Menu.Item>
-            <Menu.Item as={Link} to="/profile">Profile</Menu.Item>
-            <Menu.Item as={Link} to="/notifications">Notifications</Menu.Item>
-            <Menu.Item onClick={handleLogout}>Logout</Menu.Item>
+        <Menu.Item as={Link} to="/">Home</Menu.Item>
+        <Menu.Item as={Link} to="/dashboard">Dashboard</Menu.Item>
+        <Menu.Item as={Link} to="/teams">Teams</Menu.Item>
+        <Menu.Item as={Link} to="/strategies">Strategies</Menu.Item>
+        <Menu.Item as={Link} to="/profile">Profile</Menu.Item>
+        <Menu.Item as={Link} to="/notifications">Notifications</Menu.Item>
+        <Menu.Item onClick={handleLogout}>Logout</Menu.Item>
         </Menu>
     );
 
     const NotLoggedInMenu = (
         <Menu pointing secondary>
-            <Menu.Item as={Link} to="/">Home</Menu.Item>
-            <Menu.Item as={Link} to="/strategies">Strategies</Menu.Item>
-            <Menu.Item as={Link} to="/signup">Signup</Menu.Item>
-            <Menu.Item as={Link} to="/login">Login</Menu.Item>
+        <Menu.Item as={Link} to="/">Home</Menu.Item>
+        <Menu.Item as={Link} to="/strategies">Strategies</Menu.Item>
+        <Menu.Item as={Link} to="/signup">Signup</Menu.Item>
+        <Menu.Item as={Link} to="/login">Login</Menu.Item>
         </Menu>
     );
 
     return (
         <div className="navbar-container" style={{display: 'flex', justifyContent: 'center'}}>
-            {isLoggedIn ? LoggedInMenu : NotLoggedInMenu}
+        {isLoggedIn ? LoggedInMenu : NotLoggedInMenu}
         </div>
     );
 }

@@ -3,7 +3,7 @@ import { Grid, Segment } from 'semantic-ui-react';
 
 function Footer() {
     return (
-        <div className="footer">
+        <div style={{ marginTop: 'auto' }}>
         <Grid>
             <Grid.Row>
             <Grid.Column>
