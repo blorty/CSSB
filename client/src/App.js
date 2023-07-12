@@ -13,13 +13,14 @@ import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
 
-import './App.css';
+import './App.css'
+import './tailwind.css';
 
 function App() {
   return (
     <AppProvider>
       <Router>
-        <div style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
+        <div className="flex flex-col min-h-screen bg-gradient-to-r from-gray-800 to-blue-900 text-white">
           <NavBar />
           <Switch>
             <Route path="/" exact component={Home} />

@@ -1,79 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Icon, Select } from 'semantic-ui-react';
+import React, { useContext, useState } from 'react';
+import { AppContext } from '../AppContext';
 
 function StrategyPage() {
-  // State to hold strategies
-    const [strategies, setStrategies] = useState([]);
-    
-    // NEW: state to hold the filter for the map
-    const [filteredMap, setFilteredMap] = useState('All');
-
-    useEffect(() => {
-        // Function to fetch strategies data
-        let cancel = false;
-
-        const fetchStrategies = async () => {
-        try {
-            const response = await fetch('/strategies');
-            const data = await response.json();
-            if (!cancel) {
-            setStrategies(Array.isArray(data) ? data : []);
-            }
-        } catch (error) {
-            if (!cancel) {
-            console.error('Failed to fetch strategies:', error);
-            }
-        }
-        };
-        
-        fetchStrategies();
-
-        // Cleanup function
-        return () => {
-        cancel = true;
-        };
-    }, []);
-
+    const { strategies, filteredMap, handleMapFilterChange } = useContext(AppContext);
+    const [displayCount, setDisplayCount] = useState(10); // Initialize to 10
 
     const handleLike = (id) => {
         // You need to implement the code to handle like on your backend
         // After you implement the backend, you can make a request to update the like count
     }
 
-    const handleMapFilterChange = (e, { value }) => {
-        setFilteredMap(value);
-    }
-
-    const mapOptions = Array.isArray(strategies) ? [...new Set(strategies.map(strategy => strategy.map_name))].map(map => ({
-        key: map,
-        text: map,
-        value: map
-    })) : [];
+    const mapNames = Array.isArray(strategies) ? ['All', ...new Set(strategies.map((item, index) => item.map ? item.map.name : `emptyMap${index}`))] : [];
     
     const filteredStrategies = Array.isArray(strategies) && filteredMap === 'All'
-    ? strategies
-    : strategies.filter(strategy => strategy.map_name === filteredMap);    
+    ? strategies.slice(0, displayCount) // Only include the first displayCount strategies
+    : strategies.filter(item => item.map && item.map.name === filteredMap).slice(0, displayCount); 
 
     return (
-        <div>
-            <h1>Strategy</h1>
-            <Select placeholder='Select Map' options={mapOptions} onChange={handleMapFilterChange} />
-            <div>
-                {filteredStrategies.map(strategy => (
-                    <Card key={strategy.id}>
-                        <Card.Content>
-                            <Card.Header>{strategy.title}</Card.Header>
-                            <Card.Meta>{strategy.map.name}</Card.Meta>
-                            <Card.Description>{strategy.content}</Card.Description>
-                        </Card.Content>
-                        <Card.Content extra>
-                            <Icon name='like' onClick={() => handleLike(strategy.id)} />
+        <div className="flex flex-col items-center">
+            <h1 className="text-2xl font-bold my-5">Strategy</h1>
+            <div className="mb-5">
+                <label htmlFor="mapFilter" className="mr-2">Filter by map:</label>
+                <select id="mapFilter" value={filteredMap} onChange={(e) => handleMapFilterChange(e.target.value)} style={{color: 'black'}}>
+                    {mapNames.map((map, index) => (
+                        <option key={index} value={map}>{map}</option>
+                    ))}
+                </select>
+            </div>
+            <div className="flex flex-wrap justify-center">
+            {filteredStrategies.map((item, index) => (
+                item.strategy ? (
+                    <div key={item.strategy.id} className="border m-2 p-2 rounded w-64">
+                        <h2 className="font-bold mb-2 ">{item.strategy.title}</h2>
+                        <p className="text-sm mb-2 text-orange-500">{item.map ? item.map.name : ""}</p>
+                        <p className="text-sm mb-2">{item.strategy.content}</p>
+                        <button className="text-blue-500" onClick={() => handleLike(item.strategy.id)}>
+                            Like
                             {/* Assume you'll add a likes field to your strategy */}
                             {/* {strategy.likes} */}
-                        </Card.Content>
-                    </Card>
-                ))}
+                        </button>
+                    </div>
+                ) : <div key={`emptyStrategy${index}`}>No strategy data</div>
+            ))}
             </div>
+            <button onClick={() => setDisplayCount(displayCount + 10)}>Load more</button>
         </div>
     );
 }

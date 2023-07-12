@@ -11,6 +11,41 @@ from app import app
 from models import User, Strategy, Team, Comment, Map
 from config import db
 
+# Helper function to generate game-relevant strategy content
+def generate_strategy_content():
+    strats = [
+        "Rush B no stop", 
+        "Split A, 3 short 2 long", 
+        "Fake B, go A through connector", 
+        "Hold for picks then decide",
+        "Rush A through palace",
+        "Double fake, end B"
+        "Default, then execute on call",
+    ]
+    return choice(strats)
+
+# Top 30 teams
+top_teams = [
+    "NaVi", 
+    "Astralis", 
+    "Cloud9", 
+    "Heroic", 
+    "Virtus.pro", 
+    "G2", 
+    "Liquid", 
+    "FURIA", 
+    "Complexity", 
+    "BIG",
+    "FaZe",
+    "OG",
+    "Mousesports",
+    "Fnatic",
+    "Evil Geniuses",
+    "Vitality",
+    "Ninjas in Pyjamas",
+    # Add more teams as needed
+]
+
 # Seed execution
 if __name__ == '__main__':
     fake = Faker()
@@ -21,64 +56,72 @@ if __name__ == '__main__':
         db.create_all()
 
         # Seeding maps
-        map_names = ['Anubis', 'Inferno', 'Nuke', 'Overpass', 'Mirage', 'Ancient', 'Vertigo']
-        maps = []
+        map_names = ['Anubis', 'Inferno', 'Nuke', 'Mirage', 'Overpass', 'Ancient', 'Vertigo']
         for map_name in map_names:
-            new_map = Map(name=map_name)
-            maps.append(new_map)
-            db.session.add(new_map)
-        db.session.flush()  # Ensure Maps are persisted and IDs are assigned
+            map_obj = Map(name=map_name)
+            db.session.add(map_obj)
+        db.session.commit()
 
-        # Seeding Users and Strategies
-        users = []
+        # Seeding users and teams
         for _ in range(10):
-            new_user = User(
-                username=fake.unique.user_name(),
-                password=fake.password(length=10, special_chars=True, digits=True, upper_case=True, lower_case=True),
-                email=fake.unique.email(),
-                created_at=datetime.utcnow()
-            )
+            # Create users
+            username = fake.unique.user_name()
+            email = f"{username}@example.com"
+            password = "password"
+            user = User(username=username, email=email)
+            user.password = password  # use the property setter
+            db.session.add(user)
 
-            users.append(new_user)
-            db.session.add(new_user)
-        db.session.flush()  # Ensure Users are persisted and IDs are assigned
-
-        for user in users:
-            for _ in range(3):
-                new_strategy = Strategy(
-                    title=fake.sentence(),
-                    content=fake.text(),
-                    created_at=datetime.utcnow(),
-                    map_id=choice(maps).id,
-                    user_id=user.id  
-                )
-                db.session.add(new_strategy)
-
-        # Seeding Teams
-        teams = []
-        for _ in range(5):
-            new_team = Team(
-                name=fake.company(),
-            )
-            teams.append(new_team)
-            db.session.add(new_team)
-        db.session.flush()  # Ensure Teams are persisted and IDs are assigned
-        
-        # Assigning Users to Teams
-        for team in teams:
-            team.users.append(users[randint(0, len(users)-1)])
-            team.users.append(users[randint(0, len(users)-1)]) # Each team has two users
-            
-        # Seeding Comments
-        for _ in range(30):
-            new_comment = Comment(
-                content=fake.sentence(),
-                created_at=datetime.utcnow(),
-                user_id=choice(users).id,
-                strategy_id=choice(Strategy.query.all()).id
-            )
-            db.session.add(new_comment)
-
+        # Create teams
+        for team_name in top_teams:
+            team = Team(name=team_name)
+            db.session.add(team)
 
         db.session.commit()
-        print("Seed complete!")
+
+        # Seeding strategies
+        users = User.query.all()
+        maps = Map.query.all()
+        teams = Team.query.all()
+
+        for _ in range(50):
+            title = fake.sentence()
+            content = generate_strategy_content()
+            user_id = choice(users).id
+            map_id = choice(maps).id
+            team_id = choice(teams).id
+            created_at = fake.date_time_this_year()
+
+            strategy = Strategy(
+                title=title, 
+                content=content, 
+                user_id=user_id, 
+                map_id=map_id, 
+                created_at=created_at
+            )
+            strategy.teams.append(Team.query.get(team_id))
+
+            db.session.add(strategy)
+
+        db.session.commit()
+
+        # Seeding comments
+        strategies = Strategy.query.all()
+
+        for _ in range(100):
+            content = fake.paragraph()
+            user_id = choice(users).id
+            strategy_id = choice(strategies).id
+            created_at = fake.date_time_this_year()
+
+            comment = Comment(
+                content=content, 
+                user_id=user_id, 
+                strategy_id=strategy_id, 
+                created_at=created_at
+            )
+            db.session.add(comment)
+
+        db.session.commit()
+
+        print("Seeding done!")

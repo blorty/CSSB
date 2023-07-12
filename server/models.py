@@ -6,6 +6,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 import flask_bcrypt as bcrypt
+from flask_bcrypt import generate_password_hash, check_password_hash
 from datetime import datetime 
 
 
@@ -39,22 +40,19 @@ class User(db.Model, SerializerMixin):
     is_active = db.Column(db.Boolean(), nullable=False, default=True)
     username = db.Column(db.String(128), unique=True, nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
+    deleted_at = db.Column(db.DateTime(), default=None)
     
     strategies = db.relationship('Strategy', backref='user', lazy=True)
-    teams = db.relationship('Team', secondary=team_members, backref=db.backref('users', lazy='dynamic'))
+    teams = db.relationship('Team', secondary=team_members, back_populates='users')
     comments = db.relationship('Comment', backref='user', lazy=True)
     
     def serialize(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'strategies': [strategy.serialize() for strategy in self.strategies],
-            'teams': [team.serialize() for team in self.teams],
-            'comments': [comment.serialize() for comment in self.comments]
-        }
+        data = self.to_dict()
+        data['teams'] = [team.id for team in self.teams]
+        return data
 
     @property
     def is_active(self):
@@ -63,21 +61,13 @@ class User(db.Model, SerializerMixin):
     @property
     def is_anonymous(self):
         return False
+    
+    @property
+    def is_authenticated(self):
+        return True
 
     def get_id(self):
         return str(self.id)
-    
-    @property
-    def password(self):
-        raise AttributeError('password: write-only field')
-
-    @password.setter
-    def password(self, password):
-        self.password_plaintext = password
-        self.password_hash = bcrypt.generate_password_hash(password).decode('utf8')
-
-    def check_password(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password)
 
     # username validation
     @validates('username')
@@ -102,21 +92,22 @@ class User(db.Model, SerializerMixin):
         return email
 
     # password validation
-    @validates('password_hash')
-    def validate_password(self, key, password_hash):
-        password = self.password_plaintext
-        if not password:
-            raise AssertionError('Password not provided')
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
 
-        if len(password) < 8 or len(password) > 32:
-            raise AssertionError('Password must be between 8 and 32 characters')
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password).decode('utf-8')
 
-        return password_hash
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
     
 class Team(db.Model, SerializerMixin):
     __tablename__ = 'teams'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
+    users = db.relationship('User', secondary=team_members, back_populates='teams')
     # Many to Many relationship
     strategies = db.relationship('Strategy', secondary=strategy_team_association_table, back_populates="teams", lazy='dynamic')
 
@@ -132,9 +123,8 @@ class Map(db.Model, SerializerMixin):
         return {
             'id': self.id,
             'name': self.name,
-            'strategies': [strategy.serialize() for strategy in self.strategies],
+            # 'strategies': [strategy.serialize() for strategy in self.strategies],
         }
-
 
 class Strategy(db.Model, SerializerMixin):
     __tablename__ = 'strategies'
@@ -150,7 +140,7 @@ class Strategy(db.Model, SerializerMixin):
     # Many to Many relationship
     teams = db.relationship('Team', secondary=strategy_team_association_table, back_populates="strategies", lazy='dynamic')
 
-    def serialize(self):
+    def serialize(self):  # <-- This was not indented properly.
         return {
             'id': self.id,
             'title': self.title,
@@ -158,9 +148,17 @@ class Strategy(db.Model, SerializerMixin):
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # assuming it is a datetime object
             'user_id': self.user_id,
             'map_id': self.map_id,
-            'comments': [comment.serialize() for comment in self.comments],
-            'teams': [team.serialize() for team in self.teams],
         }
+
+def serialize(self):
+    return {
+        'id': self.id,
+        'title': self.title,
+        'content': self.content,
+        'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # assuming it is a datetime object
+        'user_id': self.user_id,
+        'map_id': self.map_id,
+    }
 
 class Comment(db.Model, SerializerMixin):
     __tablename__ = 'comments'
@@ -179,5 +177,3 @@ class Comment(db.Model, SerializerMixin):
             'user_id': self.user_id,
             'strategy_id': self.strategy_id,
         }
-
-

@@ -1,11 +1,10 @@
 import React from 'react';
-import { Container, Header, Segment } from 'semantic-ui-react';
 
 const Home = () => {
     return (
-        <Container style={{ marginTop: '7em' }}>
-            <Header as='h1' textAlign='center'>Welcome to CSSB</Header>
-            <Segment piled>
+        <div className="container mx-auto px-4 mt-16">
+            <h1 className="text-center text-4xl">Welcome to CSSB</h1>
+            <div className="bg-white text-black rounded-lg shadow-md p-6 my-8">
                 <p>
                     CSSB (Counter-Strike: Strategy Board) is an application designed to help CS:GO players
                     enhance their game strategy. Here, you can join teams, create and share your own strategies,
@@ -19,8 +18,8 @@ const Home = () => {
                 <p>
                     Happy strategizing!
                 </p>
-            </Segment>
-        </Container>
+            </div>
+        </div>
     );
 }
 

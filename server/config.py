@@ -16,6 +16,14 @@ from sqlalchemy import MetaData
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+
+
+app.config['PROPAGATE_EXCEPTIONS'] = True
+
+
 app.json.compact = False
 
 # Define metadata, instantiate db
@@ -38,4 +46,5 @@ def load_user(user_id):
 api = Api(app)
 
 # Instantiate CORS
-CORS(app)
+CORS(app, supports_credentials=True)
+
