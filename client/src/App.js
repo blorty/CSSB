@@ -8,7 +8,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import UserProfile from './components/User_Profile';
 import StrategyPage from './components/Strategy_Page';
-import TeamPage from './components/Team_Page';
+import TeamPage from './components/TeamPage';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';

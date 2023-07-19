@@ -25,7 +25,7 @@ function NavBar() {
         <nav className="bg-blue-600 p-4 flex justify-around">
             <NavItem to="/">Home</NavItem>
             <NavItem to="/dashboard">Dashboard</NavItem>
-            <NavItem to="/teams">Teams</NavItem>
+            <NavItem to="/team">Teams</NavItem>
             <NavItem to="/strategies">Strategies</NavItem>
             <NavItem to="/profile">Profile</NavItem>
             <NavItem to="/notifications">Notifications</NavItem>

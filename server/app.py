@@ -237,11 +237,21 @@ class StrategiesResource(Resource):
 
 class TeamResource(Resource):
     @login_required
-    def get(self, id):
-        team = Team.query.get(id)
-        if not team:
-            abort(404, description="Team not found.")
-        return team.serialize()
+    def get(self, id=None):
+        if id is None:
+            # Get all teams
+            try:
+                teams = Team.query.all()
+                return {'teams': [team.serialize() for team in teams]}
+            except Exception as e:
+                app.logger.error(f"Error getting all teams: {e}")
+                return {"message": str(e)}, 500
+        else:
+            # Get a specific team
+            team = Team.query.get(id)
+            if not team:
+                abort(404, description="Team not found.")
+            return team.serialize()
     
     @login_required
     def put(self, id):
