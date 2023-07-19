@@ -108,9 +108,17 @@ class Team(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     users = db.relationship('User', secondary=team_members, back_populates='teams')
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     # Many to Many relationship
     strategies = db.relationship('Strategy', secondary=strategy_team_association_table, back_populates="teams", lazy='dynamic')
 
+    def serialize(self):
+        return {
+        'id': self.id,
+        'name': self.name,
+        'owner_id': self.owner_id,
+        'users': [user.serialize() for user in self.users]
+    }
 
 class Map(db.Model, SerializerMixin):
     __tablename__ = 'maps'

@@ -10,8 +10,7 @@ export const AppProvider = ({ children }) => {
     const [strategies, setStrategies] = useState([]);
     const [filteredMap, setFilteredMap] = useState('All');
     
-    const [user, setUser] = useState(null);  // Added user state
-
+    const [user, setUser] = useState(null);
     const [avatar, setAvatar] = useState(user ? user.avatar : '/default-avatar.jpg');
 
     const history = useHistory();
@@ -32,10 +31,12 @@ export const AppProvider = ({ children }) => {
             return response.json();
         })
         .then(userData => {
+            console.log('User data from server:', userData);  // Log the user data from the server
             localStorage.setItem('isLoggedIn', true);
-            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('user', JSON.stringify(userData.user));
             setIsLoggedIn(true);
-            setUser(userData);
+            setUser(userData.user);
+            console.log('User state variable:', userData.user);  // Log the value of the user data from the server
             history.push('/dashboard');
         })
         .catch(error => {
@@ -43,9 +44,8 @@ export const AppProvider = ({ children }) => {
             throw error;
         });
     };
-    
 
-    const register = (values) => {
+    const register = (values, history) => {
         fetch('/signup', {
             method: 'POST',
             headers: {
@@ -58,13 +58,30 @@ export const AppProvider = ({ children }) => {
             if (!response.ok) {
                 return response.json().then(data => Promise.reject(data.message));
             }
+            return response.json();
+        })
+        .then(userData => {
             console.log('User signup successful');
+            localStorage.setItem('isLoggedIn', true);
+            localStorage.setItem('user', JSON.stringify(userData.user));
+            setIsLoggedIn(true);
+            setUser(userData.user);
             history.push('/dashboard');
         })
         .catch(error => {
             setAuthError(error);
         });
     };
+    
+    // Add this useEffect hook to your component
+    useEffect(() => {
+        const loggedInStatus = localStorage.getItem('isLoggedIn');
+        const userData = localStorage.getItem('user');
+        setIsLoggedIn(loggedInStatus === 'true');
+        if (userData !== "undefined") {
+            setUser(JSON.parse(userData));
+        }
+    }, []);
 
     const logout = (history) => {
         fetch('/logout', {
@@ -90,9 +107,11 @@ export const AppProvider = ({ children }) => {
         const loggedInStatus = localStorage.getItem('isLoggedIn');
         const userData = localStorage.getItem('user');
         setIsLoggedIn(loggedInStatus === 'true');
-        setUser(userData ? JSON.parse(userData) : null);  // Restore user data from localStorage
+        if (userData !== "undefined") {
+            setUser(JSON.parse(userData));
+        }
     }, []);
-
+    
     useEffect(() => {
         if (isLoggedIn) {
             fetch('/strategies', {
@@ -144,12 +163,80 @@ export const AppProvider = ({ children }) => {
             console.error('Failed to update profile:', error);
         });
     };
+
+    const createTeam = (teamName) => {  // Remove gameName parameter
+        fetch('/team', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: teamName }),  // Remove gameName from the request body
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message));
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Team created:', data);
+            // Update your state here if needed
+        })
+        .catch(error => {
+            console.error('Failed to create team:', error);
+        });
+    };
+    
+
+    const updateStrategy = (strategyId, newName, newDescription) => {
+        fetch(`/strategy/${strategyId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: newName, description: newDescription }),
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message));
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Strategy updated:', data);
+            // Update your state here if needed
+        })
+        .catch(error => {
+            console.error('Failed to update strategy:', error);
+        });
+    };
+
+    const deleteStrategy = (strategyId) => {
+        fetch(`/strategy/${strategyId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message));
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Strategy deleted:', data);
+            // Update your state here if needed
+        })
+        .catch(error => {
+            console.error('Failed to delete strategy:', error);
+        });
+    };
     
     // Include updateProfile and avatar in the context
     return (
-        <AppContext.Provider value={{ isLoggedIn, user, avatar, setIsLoggedIn, login, register, logout, authError, strategies, filteredMap, handleMapFilterChange, updateProfile }}>
+        <AppContext.Provider value={{ isLoggedIn, user, avatar, setIsLoggedIn, login, register, logout, authError, strategies, filteredMap, handleMapFilterChange, updateProfile, createTeam, updateStrategy, deleteStrategy }}>
             {children}
         </AppContext.Provider>
     );
 };
-

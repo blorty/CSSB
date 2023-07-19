@@ -72,12 +72,16 @@ if __name__ == '__main__':
             user.password = password  # use the property setter
             db.session.add(user)
 
-        # Create teams
+        # Seeding teams
         for team_name in top_teams:
             team = Team(name=team_name)
             db.session.add(team)
 
         db.session.commit()
+
+        # Fetch teams from the database after they have been added
+        teams = Team.query.all()
+
 
         # Seeding strategies
         users = User.query.all()

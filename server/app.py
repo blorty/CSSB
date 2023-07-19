@@ -107,13 +107,20 @@ class LoginResource(Resource):
 
             if user and user.check_password(data['password']):
                 login_user(user)
-                return {"message": "Logged in successfully"}, 200
+                return {
+                    "message": "Logged in successfully",
+                    "user": {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email
+                        # Include any other user data you need
+                    }
+                }, 200
             else:
                 return {"message": "Invalid username or password"}, 401
         except Exception as e:
             app.logger.error(f"Error in LoginResource: {e}")
             return {"message": str(e)}, 500
-
 
 class LogoutResource(Resource):
     def post(self):
@@ -247,11 +254,12 @@ class TeamResource(Resource):
         return {"message": "Team updated successfully"}, 200
 
     @login_required
-    def post(self):
+    def post(self):  # <-- This should be aligned with the other methods (like `get`, `put`, `delete`).
+        print("POST request received for /team")  # Add this line
         data = request.get_json()
+        print(data)  # Add this line
         new_team = Team(
             name=data['name'],
-            game=data['game'],
             owner_id=current_user.id  # Set the current user as the owner
         )
         db.session.add(new_team)
@@ -266,6 +274,7 @@ class TeamResource(Resource):
         db.session.delete(team)
         db.session.commit()
         return {"message": "Team deleted successfully"}, 200
+
     
 class TeamInviteResource(Resource):
     @login_required
@@ -334,7 +343,7 @@ api.add_resource(TeamInviteResource, '/team/invite')
 api.add_resource(TeamKickResource, '/team/kick')
 api.add_resource(StrategiesResource, '/strategies', '/strategies/<int:id>')
 api.add_resource(UserResource, '/profile/<int:id>')
-api.add_resource(TeamResource, '/team/<int:id>')
+api.add_resource(TeamResource, '/team', '/team/<int:id>')
 api.add_resource(CommentResource, '/comment/<int:id>')
 
 @app.errorhandler(Exception)
