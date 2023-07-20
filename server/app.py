@@ -144,8 +144,21 @@ class UserResource(UserMixin, Resource):
         if current_user.id != id:
             abort(403, description="Unauthorized action.")
         data = request.get_json()
-        User.query.filter_by(id=id).update(data)
+
+        # Check if the new username is already taken
+        new_username = data.get('new_username')
+        if new_username and User.query.filter_by(username=new_username).first():
+            return {"message": "This username is already taken."}, 400
+
+        # Check if the current password is correct
+        current_password = data.get('current_password')
+        if not current_user.check_password(current_password):
+            return {"message": "Incorrect password."}, 400
+
+        # Update the username
+        current_user.username = new_username
         db.session.commit()
+
         return {"message": "User updated successfully"}, 200
         
     @custom_login_required
@@ -272,10 +285,11 @@ class TeamResource(Resource):
             name=data['name'],
             owner_id=current_user.id  # Set the current user as the owner
         )
+        new_team.users.append(current_user)  # Add this line
         db.session.add(new_team)
         db.session.commit()
         return new_team.serialize(), 201
-
+    
     @login_required
     def delete(self, id):
         team = Team.query.get(id)

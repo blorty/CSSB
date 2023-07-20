@@ -26,23 +26,23 @@ def generate_strategy_content():
 
 # Top 30 teams
 top_teams = [
-    "NaVi", 
-    "Astralis", 
-    "Cloud9", 
-    "Heroic", 
-    "Virtus.pro", 
-    "G2", 
-    "Liquid", 
-    "FURIA", 
-    "Complexity", 
-    "BIG",
-    "FaZe",
-    "OG",
-    "Mousesports",
-    "Fnatic",
-    "Evil Geniuses",
-    "Vitality",
-    "Ninjas in Pyjamas",
+    ("NaVi", ["s1mple", "iM", "jL", "Aleskib", "B1T"]), 
+    ("Astralis", ["device", "b0RUP", "blameF", "Staehr", "Buzz"]), 
+    ("Cloud9", ["Buster", "Hobbit", "electronic", "Ax1le", "Perfecto"]),
+    ("Heroic", ["cadiaN", "stavn", "TeSeS", "sjuush", "jabbi"]), 
+    ("Virtus.pro", ["FL1T", "Qikert", "Jame", "n0rb3r7", "fame"]), 
+    ("G2", ["huNter-", "m0nesy", "NiKo", "Hooxi", "jks"]), 
+    ("Liquid", ["oSee", "NAF", "YEKINDAR", "Rainwaker", "Patsi"]), 
+    ("FURIA", ["yuurih", "arT", "chelo", "KSCERATO", "Fallen"]),
+    ("Complexity", ["EliGE", "JT", "floppy", "hallzerk", "Grim"]), 
+    ("BIG", ["tabseN", "Krimbo", "prosus", "mantuu", "s1n"]),
+    ("FaZe", ["rain", "ropz", "broky", "Twistzz", "karrigan"]),
+    ("OG", ["FIKU", "regali", "k1to", "nexa", "FASHR"]),
+    ("Mousesports", ["frozen", "siuhy", "torzsi", "Jimphat", "xertioN"]),
+    ("Fnatic", ["KRIMZ", "dexter", "roej", "mezzi", "afro"]),
+    ("Evil Geniuses", ["junior", "autimatic", "Jeorge", "HexT", "Walco"]),
+    ("Vitality", ["ZywOo", "flameZ", "apEX", "SpinX", "Magisk"]),
+    ("Ninjas in Pyjamas", ["REZ", "k0nfig", "hampus", "Brollan", "headtr1ck"]),
     # Add more teams as needed
 ]
 
@@ -61,21 +61,23 @@ if __name__ == '__main__':
             map_obj = Map(name=map_name)
             db.session.add(map_obj)
         db.session.commit()
-
-        # Seeding users and teams
-        for _ in range(10):
-            # Create users
-            username = fake.unique.user_name()
-            email = f"{username}@example.com"
-            password = "password"
-            user = User(username=username, email=email)
-            user.password = password  # use the property setter
-            db.session.add(user)
-
-        # Seeding teams
-        for team_name in top_teams:
+        
+        # Seeding users
+        for team_name, players in top_teams:
+            # Create new team
             team = Team(name=team_name)
             db.session.add(team)
+            # Create user for each player and add them to the team
+            for player_name in players:
+                player_email = f"{player_name}@example.com"
+                existing_user = User.query.filter_by(username=player_name).first()
+                if existing_user is None:  # only create user if not already in the database
+                    player = User(username=player_name, email=player_email)
+                    player.password = "password"  # use the property setter
+                    db.session.add(player)
+                    team.users.append(player)  # Add player to team
+
+        db.session.commit()  # <-- Commit after adding users and teams
 
         db.session.commit()
 

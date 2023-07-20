@@ -2,10 +2,13 @@ import React, { useContext, useState } from 'react';
 import { AppContext } from '../AppContext';
 import StrategyCard from './StrategyCard';
 import CreateTeamModal from './CreateTeamModal';
+import UpdateProfileModal from './UpdateProfileModal';
+
 
 function Dashboard() {
-    const { user, strategies } = useContext(AppContext);
+    const { user, updateUser } = useContext(AppContext);
     const [showModal, setShowModal] = useState(false); // New state variable
+    const [showUpdateProfileModal, setShowUpdateProfileModal] = useState(false);  // New state variable
 
     if (!user) {
         return <h1>Please login to view this page</h1>;
@@ -77,19 +80,27 @@ function Dashboard() {
             )}
             </div>
 
+            {showUpdateProfileModal && <UpdateProfileModal onClose={() => setShowUpdateProfileModal(false)} updateUser={updateUser} />}
+
             {showModal && <CreateTeamModal onClose={() => setShowModal(false)} />}
 
             <h3 className="text-xl font-semibold">Quick Actions</h3>
             <div className="flex space-x-4">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Update Profile
-            </button>
+
             <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 onClick={() => setShowModal(true)}
             >
                 Create Team
             </button>
+
+            <button 
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" 
+                onClick={() => setShowUpdateProfileModal(true)}
+            >
+                Update Profile
+            </button>
+            
             </div>
         </div>
         </div>

@@ -61,6 +61,7 @@ export const AppProvider = ({ children }) => {
             return response.json();
         })
         .then(userData => {
+            console.log('User data from server:', userData);
             console.log('User signup successful');
             localStorage.setItem('isLoggedIn', true);
             localStorage.setItem('user', JSON.stringify(userData.user));
@@ -137,32 +138,27 @@ export const AppProvider = ({ children }) => {
         setFilteredMap(value);
     }    
 
-    const updateProfile = (name, email) => {
-        fetch('/profile', {
-            method: 'POST',
+    const updateUser = (username, password) => {
+        return fetch('/user', {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name, email }),
+            body: JSON.stringify({ username, password }),
             credentials: 'include',
         })
         .then(response => {
             if (!response.ok) {
-                return response.json().then(data => Promise.reject(data.message));
+                throw new Error("Failed to update user profile");
             }
             return response.json();
         })
         .then(data => {
-            // Handle success
-            console.log('Profile updated:', data);
-            // Update the user state with the new data
-            setUser(data);
-            setAvatar(data.avatar);
+            setUser(data.user);  // Update the user state variable
         })
-        .catch(error => {
-            console.error('Failed to update profile:', error);
-        });
+        .catch(error => console.error('Error:', error));
     };
+    
 
     const createTeam = (teamName) => {  // Remove gameName parameter
         fetch('/team', {
@@ -235,7 +231,7 @@ export const AppProvider = ({ children }) => {
     
     // Include updateProfile and avatar in the context
     return (
-        <AppContext.Provider value={{ isLoggedIn, user, avatar, setIsLoggedIn, login, register, logout, authError, strategies, filteredMap, handleMapFilterChange, updateProfile, createTeam, updateStrategy, deleteStrategy }}>
+        <AppContext.Provider value={{ isLoggedIn, user, avatar, setIsLoggedIn, login, register, logout, authError, strategies, filteredMap, handleMapFilterChange, updateUser, createTeam, updateStrategy, deleteStrategy }}>
             {children}
         </AppContext.Provider>
     );

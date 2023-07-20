@@ -60,13 +60,20 @@ const TeamPage = () => {
 
     return (
         <div>
-        <h1> Teams </h1>
+        <h1> TOP TEAMS </h1>
         {teams.map((team) => (
-            <div key={team.id} className="m-4 p-4 bg-gray-200 rounded shadow">
-            <h2 className="text-xl font-bold">{team.name}</h2>
-            {/* Add more team properties here */}
+            <div key={team.id} className="m-4 p-4 bg-gray-200/40 rounded shadow">
+                <h2 className="text-xl font-bold">{team.name}</h2>
+                {/* Add more team properties here */}
+                <h3 className='mt-0 '>Members:</h3>
+                <ul className='flex flex-row justify-self-auto space-x-8'>
+                    {team.users.map((user) => (
+                        <li key={user.id}>{user.username}</li>
+                    ))}
+                </ul>
             </div>
         ))}
+
         <form onSubmit={handleNewTeamSubmit}>
             <input
             type="text"

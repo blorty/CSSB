@@ -49,8 +49,18 @@ class User(db.Model, SerializerMixin):
     teams = db.relationship('Team', secondary=team_members, back_populates='users')
     comments = db.relationship('Comment', backref='user', lazy=True)
     
+    def serialize_basic(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat(),
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None,
+        }
+
     def serialize(self):
-        data = self.to_dict()
+        data = self.serialize_basic()
         data['teams'] = [team.id for team in self.teams]
         return data
 
@@ -114,11 +124,11 @@ class Team(db.Model, SerializerMixin):
 
     def serialize(self):
         return {
-        'id': self.id,
-        'name': self.name,
-        'owner_id': self.owner_id,
-        'users': [user.serialize() for user in self.users]
-    }
+            'id': self.id,
+            'name': self.name,
+            'owner_id': self.owner_id,
+            'users': [user.serialize_basic() for user in self.users]
+        }
 
 class Map(db.Model, SerializerMixin):
     __tablename__ = 'maps'
